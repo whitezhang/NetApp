@@ -7,9 +7,11 @@ from udpEngine import udpPretreatment
 from udpEngine import udpPendingAnalysis
 from tcpEngine import tcpEngineRun
 from tcpEngine import marketBasketAnalysis
+from transEngine import ipTrans
 from initConfigure import readConfigure
 from aprioriGen import *
 from fileOp import writeUdpPacketStreamData
+from matching import udpMatching
 
 import threading
 from time import sleep, ctime, time
@@ -140,45 +142,62 @@ while i < packetNum:
 #marketBasketAnalysis(attrMBThreshold, attrMBSYN)
 
 # ================== UDP ========================
+fff = open("tttttt.txt", "wb")
+for i in range(len(udpPacketStreamBase)):
+	fff.write("%d %r"%(i,ipTrans(udpPacketStreamBase[i][0])))
+	fff.write("%r"%ipTrans(udpPacketStreamBase[i][1]))
+	fff.write("%r\n"%udpPacketStreamData[i])
+fff.close()
+
+print '===============UDP Matching================'
+udpMatching(udpPacketStreamBase, udpPacketStreamData)
+
 for index in range(sysLen):
 	if sys.argv[index] == '-upre' or sys.argv[index] == '-all':
 		# udp.txt --> udpStatistic.txt
 		udpPretreatment('udp.txt', 'udpStatistic')
 		udpPendingAnalysis()
-for index in range(sysLen):
 	if sys.argv[index] == '-uapr' or sys.argv[index] == '-all':
+		print '===================UDP Feature Detection=================='
 		# UDP Apriori: udpPacketStreamData --> udpStream.txt
 		writeUdpPacketStreamData(udpPacketStreamData)
 		dataSet = udpAprioriGen()
 
 		ansSet = []
-		threshold = 0.6
+		threshold = 0.95
 		frontLen = 2
-		aprioriFactory(dataSet, udpPacketStreamData)
+#		aprioriFactory(dataSet, udpPacketStreamData)
 		fans = open(path+'apriori.txt', 'w')
 		while threshold < 1.00:
-			frontLen = 2
-			while frontLen < 1024:
+			frontLen = 12
+			while frontLen <= 12:
 				startTime = time()
 				revL = aprioriFactory(dataSet, udpPacketStreamData, threshold, frontLen)
+				revL = unique(revL)
 				endTime = time()
 				gapTime = endTime - startTime
-				fans.write("%d %.4lf %.4lf %r\n" % (frontLen, threshold, gapTime, revL))
+#				fans.write("%d %.4lf %.4lf %r\n" % (frontLen, threshold, gapTime, revL))
+				for e1 in revL[1:]:
+					for e2 in e1:
+						for e3 in e2:
+#							print "%r"%ord(eval(repr(e3)))
+							fans.write("%d " % ord(eval(repr(e3))))
+					fans.write("\n")
 				frontLen += 1
-			threshold += 0.01
-			print threshold
+			threshold += 0.1
+#			print threshold
 		fans.close()
-		print "....................................."
-	
+# for testing
+	if sys.argv[index] == 'utest' or sys.argv[index] == 'all':	
 		ansSet = []
-		threshold = 0.6
+		threshold = 0.85
 		frontLen = 2
 # standardL need to be updated by person
 #		standardL = aprioriFactory(dataSet, udpTestedPacketStreamData, 0.9, 12)
 		fansed = open(path+'aprioried.txt', 'w')
 		while threshold < 1.00:
 			frontLen = 2
-			while frontLen < 1024:
+			while frontLen < 256:
 				startTime = time()
 				revL = aprioriFactory(dataSet, udpTestedPacketStreamData, threshold, frontLen)
 				endTime = time()
@@ -188,16 +207,12 @@ for index in range(sysLen):
 			threshold += 0.01
 			print threshold
 		fansed.close()
-
 # ===============================================
-for index in range(sysLen):
 	if sys.argv[index] == '-uload' or sys.argv[index] == 'all':
 		pktStreamLen = len(udpPacketStreamData)
 		for i in range(pktStreamLen):
 			fUDPloadtxt.write(repr(udpPacketStreamData))
-
 # ===============================================
-for index in range(sysLen):
 	if sys.argv[index] == '-tload' or sys.argv[index] == '-all':
 		pktStreamLen = len(tcpPacketStreamData)
 		for i in range(pktStreamLen):

@@ -238,41 +238,48 @@ def udpPendingAnalysis():
 # packetInfo = ['srcIP', 'desIP', 'srcPort', 'desPort', 'payload']
 # packetStreamData = [[payload11, payload12,.....], [payload21...], .....]
 def udpEngineRun(packetStreamBase, packetStreamData, packetInfo, testedPacketStreamData):
-	if len(packetInfo['payload'][0]) != 0 and '\x02' == packetInfo['payload'][0]:
-		qNumber = transOICQNum(packetInfo['payload'][7:11])
-		testedPacketStreamData[0].append(packetInfo['payload'])
+#	if len(packetInfo['payload'][0]) != 0 and '\x02' == packetInfo['payload'][0]:
+#		qNumber = transOICQNum(packetInfo['payload'][7:11])
+#		testedPacketStreamData[0].append(packetInfo['payload'])
 #		print 'OICQ %d' % qNumber
-	elif len(packetInfo['payload'][0]) >= 0 and '\xe4' == packetInfo['payload'][0]:
-		testedPacketStreamData[1].append(packetInfo['payload'])
-		pass
+#	elif len(packetInfo['payload'][0]) != 0 and '\xe4' == packetInfo['payload'][0]:
+#		testedPacketStreamData[1].append(packetInfo['payload'])
+#		pass
 #		print 'eDonkey'
-	elif len(packetInfo['payload'][0]) != 0 and '\xfe' == packetInfo['payload'][0]:
-		testedPacketStreamData[2].append(packetInfo['payload'])
-		pass
+#	elif len(packetInfo['payload'][0]) != 0 and '\xfe' == packetInfo['payload'][0]:
+#		testedPacketStreamData[2].append(packetInfo['payload'])
+#		pass
 #		print 'BT(Old Version)'
-	else:
-		writeFile(packetInfo, 'udpPending')
+#	elif len(packetInfo['payload'][0]) != 0 and '\x29' == packetInfo['payload'][0]:
+#		pass
+#	else:
+#	writeFile(packetInfo, 'udpPending')
 
-		curStream = []
-		packetPort = []
-		curStream.append(packetInfo['srcIP'])
-		curStream.append(packetInfo['desIP'])
-		curStream.sort()
-		packetPort.append(packetInfo['srcPort'])
-		packetPort.append(packetInfo['desPort'])
-		packetPort.sort()
-		curStream.append(packetPort[0])
-		curStream.append(packetPort[1])
-		pktLen = len(packetStreamBase)
-		i = 0
-		while i < pktLen:
-			if not cmp(packetStreamBase[i], curStream):
-				packetStreamData[i].append(packetInfo['payload'])
-				break
-			i += 1
-		if i == pktLen:
-			packetStreamBase.append(curStream)
-			tmpData = []
-			tmpData.append(packetInfo['payload'])
-			packetStreamData.append(tmpData)
+	curStream = []
+	packetPort = []
+	curStream.append(packetInfo['srcIP'])
+	curStream.append(packetInfo['desIP'])
+	unsortStream = curStream
+	curStream = sorted(curStream)
+	if unsortStream != curStream:
+		curStream.append(1)
+	else:
+		curStream.append(0)
+	packetPort.append(packetInfo['srcPort'])
+	packetPort.append(packetInfo['desPort'])
+	packetPort.sort()
+	curStream.append(packetPort[0])
+	curStream.append(packetPort[1])
+	pktLen = len(packetStreamBase)
+	i = 0
+	while i < pktLen:
+		if not cmp(packetStreamBase[i], curStream):
+			packetStreamData[i].append(packetInfo['payload'])
+			break
+		i += 1
+	if i == pktLen:
+		packetStreamBase.append(curStream)
+		tmpData = []
+		tmpData.append(packetInfo['payload'])
+		packetStreamData.append(tmpData)
 	return packetStreamBase, packetStreamData, testedPacketStreamData

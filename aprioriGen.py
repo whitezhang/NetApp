@@ -1,3 +1,13 @@
+def unique(listPar):
+	length = len(listPar)
+	revL = []
+	i = 0
+	while i < length:
+		if listPar[i] not in revL:
+			revL.append(listPar[i])
+		i += 1
+	return revL
+
 def createD(udpPacketStreamData, lenFlag = 0, singleLength = 8):
 	D = []
 	k = 0
@@ -80,7 +90,7 @@ def apriori(C1, D, minSupport = 0.5):
 		k += 1
 	return L, supportData
 
-def aprioriFactory(dataSet, udpPacketStreamData, minSupport = 0.9, singleLength = 8):
+def aprioriFactory(dataSet, udpPacketStreamData, minSupport = 0.95, singleLength = 8):
 	C1 = createC1(dataSet)
 	D = createD(udpPacketStreamData, 1, singleLength)
 	dLen = len(D)
@@ -89,12 +99,13 @@ def aprioriFactory(dataSet, udpPacketStreamData, minSupport = 0.9, singleLength 
 	while k < dLen:
 #	number of packet stream
 #		print len(D[k])
-		if len(D[k]) <= 1:
+		if len(D[k]) <= 5:
 			k += 1
 			continue
 		L, suppData = apriori(C1, D[k], minSupport)
 #	L feature
 		print k,
+		print len(D[k])
 		print L[len(L)-2]
 		revL.append(L[len(L)-2])
 		k += 1
